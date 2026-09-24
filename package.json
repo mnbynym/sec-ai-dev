@@ -1,0 +1,14 @@
+{
+  "name": "sec-ai-dev-todo",
+  "version": "0.1.0",
+  "description": "依存ゼロの TODO 管理コンソールアプリ",
+  "type": "module",
+  "bin": {
+    "todo": "src/cli.js"
+  },
+  "scripts": {
+    "start": "node src/cli.js",
+    "test": "node --test"
+  },
+  "license": "MIT"
+}
