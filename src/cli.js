@@ -73,12 +73,22 @@ function main(argv) {
     }
 
     case "due": {
+      if (rest.length < 2) {
+        throw new Error("ID と期限を指定してください");
+      }
       const all = load();
       const id = Number(rest[0]);
+      if (!Number.isInteger(id)) {
+        throw new Error(`ID は整数で指定してください: ${rest[0]}`);
+      }
       const task = all.find((t) => t.id === id);
-      task.due = report.parseDue(rest[1]);
-      save(all);
-      console.log(`期限を設定しました: #${task.id} ${report.formatDue(task.due)}`);
+      if (!task) {
+        throw new Error(`ID ${id} のタスクが見つかりません`);
+      }
+      const due = report.parseDue(rest[1]);
+      const next = all.map((t) => (t.id === id ? { ...t, due } : t));
+      save(next);
+      console.log(`期限を設定しました: #${task.id} ${report.formatDue(due)}`);
       return 0;
     }
 

@@ -2,7 +2,15 @@
 
 /** 次に使う ID（既存の最大 ID + 1）。 */
 function nextId(tasks) {
-  return tasks.reduce((max, t) => Math.max(max, t.id), 0) + 1;
+  const max = tasks.reduce(
+    (current, task) =>
+      Number.isSafeInteger(task.id) && task.id > current ? task.id : current,
+    0,
+  );
+  if (max === Number.MAX_SAFE_INTEGER) {
+    throw new Error("これ以上タスクを追加できません");
+  }
+  return max + 1;
 }
 
 /** タスクを追加して、新しい配列と追加したタスクを返す。 */

@@ -1,5 +1,10 @@
 // タスクの永続化層。JSON ファイル 1 枚に読み書きするだけの薄いラッパー。
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import {
+  readFileSync,
+  writeFileSync,
+  mkdirSync,
+  renameSync,
+} from "node:fs";
 import { dirname, join } from "node:path";
 import { homedir } from "node:os";
 
@@ -34,6 +39,7 @@ export function load() {
   if (!Array.isArray(parsed)) {
     throw new Error(`保存ファイルの形式が不正です（配列ではありません）: ${path}`);
   }
+  parsed.forEach((task, index) => validateTask(task, `${path} の ${index + 1} 件目`));
   return parsed;
 }
 
@@ -41,5 +47,24 @@ export function load() {
 export function save(tasks) {
   const path = storePath();
   mkdirSync(dirname(path), { recursive: true });
-  writeFileSync(path, JSON.stringify(tasks, null, 2) + "\n", "utf8");
+  tasks.forEach((task, index) => validateTask(task, `${index + 1} 件目`));
+  const content = JSON.stringify(tasks, null, 2) + "\n";
+  const temporaryPath = `${path}.${process.pid}.${Date.now()}.tmp`;
+  writeFileSync(temporaryPath, content, "utf8");
+  renameSync(temporaryPath, path);
+}
+
+function validateTask(task, label) {
+  if (
+    task === null ||
+    typeof task !== "object" ||
+    !Number.isSafeInteger(task.id) ||
+    task.id < 1 ||
+    typeof task.title !== "string" ||
+    typeof task.done !== "boolean" ||
+    typeof task.createdAt !== "string" ||
+    (task.due !== undefined && typeof task.due !== "string")
+  ) {
+    throw new Error(`保存ファイルのタスク形式が不正です（${label}）`);
+  }
 }
